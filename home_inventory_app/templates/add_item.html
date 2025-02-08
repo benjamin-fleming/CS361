@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Item - Home Inventory</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Add New Inventory Item</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <label for="category">Category:</label><br>
+        <input type="text" name="category" required><br><br>
+        
+        <label for="subcategory">SubCategory:</label><br>
+        <input type="text" name="subcategory"><br><br>
+        
+        <label for="item">Item:</label><br>
+        <input type="text" name="item" required><br><br>
+        
+        <label for="purchase_date">Purchase Date:</label><br>
+        <input type="date" name="purchase_date"><br><br>
+        
+        <label for="value">Value:</label><br>
+        <input type="number" step="0.01" name="value"><br><br>
+        
+        <label for="image_file">Upload Image:</label><br>
+        <input type="file" name="image_file" accept="image/*"><br><br>
+        
+        <input type="submit" value="Add Item">
+    </form>
+    <br>
+    <a href="{{ url_for('home') }}">Back to Home Inventory</a>
+</body>
+</html>

@@ -1,0 +1,67 @@
+/* Set background color for the entire page */
+body {
+    background-color: grey;
+    color: white; /* White text for the whole site */
+    font-family: Arial, sans-serif;
+}
+
+.table-wrapper {
+    position: relative;      /* So that the absolute positioning below is relative to this container */
+    display: inline-block;   /* Shrinks to fit its content (the table) */
+    width: 100%;             /* Ensure the table still spans the full width if needed */
+}
+
+/* Style the table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Style the table header */
+th {
+    background-color: #5A5A5A;  /* Dark grey header */
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+/* Style the table rows with alternating colors */
+tr:nth-child(even) {
+    background-color: #7B7B7B;  /* Row dark grey */
+}
+
+tr:nth-child(odd) {
+    background-color: #8A8A8A;  /* Row Light grey */
+}
+
+/* Style the table cells */
+td {
+    padding: 10px;
+    color: white; /* Ensure text inside cells is white */
+}
+
+/* Add borders */
+th, td {
+    border: 1px solid white;
+}
+
+/* Force thumbnail size */
+img {
+    width: 75px;
+    height: 75px;
+    object-fit: cover;
+}
+
+#addItemButton {
+    position: absolute;
+    top: 100%;    /* Places the button immediately after the container (i.e. after the table) */
+    right: 0;     /* Aligns it to the right edge */
+    width: auto;
+}
+
+#addItemButton img {
+    background-color: #5A5A5A;
+    width: 100%; /* Makes the image width match the column dynamically */
+    height: auto;
+    cursor: pointer;
+}

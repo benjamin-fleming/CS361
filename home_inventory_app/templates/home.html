@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home Inventory</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <a href="/">
+    <img src="{{ url_for('static', filename='images/HomeLogo.png') }}" alt="Home Inventory" style="width: auto; height: auto;">
+  </a>
+  <!-- Wrap the table (and button) in a container that shrink-wraps the table -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>SubCategory</th>
+          <th>Item</th>
+          <th>Purchase Date</th>
+          <th>Value</th>
+          <th>Image</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.category }}</td>
+          <td>{{ item.subcategory }}</td>
+          <td>{{ item.item }}</td>
+          <td>{{ item.purchase_date }}</td>
+          <td>{{ item.value }}</td>
+          <td>
+            {% if item.image %}
+              <img src="{{ url_for('static', filename='images/' ~ item.image) }}" alt="{{ item.item }}">
+            {% else %}
+              No Image
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            <a href="{{ url_for('edit_item', item_id=item.id) }}">
+              <img src="{{ url_for('static', filename='images/EditLogo.png') }}" alt="Edit" style="width: auto; height: auto; display: block; margin: auto;">
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="addItemButton">
+      <a href="{{ url_for('add_item') }}">
+        <img src="{{ url_for('static', filename='images/AddItemLogo.png') }}" alt="Add Item">
+      </a>
+    </div>
+  </div>
+</body>
+</html>
