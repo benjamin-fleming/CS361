@@ -1,54 +1,63 @@
+# Benjamin Fleming
+# OSU - CS 361
+# 02/10/2025
+
+
+# import libraries
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 import os
 
-# Allowed image extensions
+# define image file types
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
-    """Return True if the file has one of the allowed extensions."""
+    """check if a file is allowed based on its extension"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# create flask app
 app = Flask(__name__)
 
-# Base directory for file paths
+# get base directory for file paths
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Configure the SQLite database and file upload folder
+# configure the database & folder for uploads
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'inventory.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'images')
 
+# init the sql object
 db = SQLAlchemy(app)
 
-# Database model for an inventory item
+# define inventory item model
 class InventoryItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(50), nullable=False)
     subcategory = db.Column(db.String(50), nullable=True)
     item = db.Column(db.String(100), nullable=False)
-    purchase_date = db.Column(db.String(20), nullable=True)  # e.g., "YYYY-MM-DD"
+    purchase_date = db.Column(db.String(20), nullable=True)  # example: "yyyy-mm-dd"
     value = db.Column(db.Float, nullable=True)
-    image = db.Column(db.String(100), nullable=True)  # Stores the filename of the uploaded image
+    image = db.Column(db.String(100), nullable=True)  # filename of the uploaded image
 
     def __repr__(self):
         return f'<InventoryItem {self.item}>'
 
-# Create tables before the first request
+# create database tables if they don't exist
 with app.app_context():
     db.create_all()
 
-# Home page: display all inventory items
+# home page
 @app.route('/')
 def home():
     items = InventoryItem.query.all()
     return render_template('home.html', items=items)
 
-# Route to add a new inventory item
+#  new inventory item page
 @app.route('/add', methods=['GET', 'POST'])
 def add_item():
     if request.method == 'POST':
+        # get form data for the new item
         category = request.form['category']
         subcategory = request.form['subcategory']
         item_name = request.form['item']
@@ -56,7 +65,7 @@ def add_item():
         value = request.form['value']
 
         image_filename = ''
-        # Check if an image file was uploaded
+        # check if an image file was provided
         if 'image_file' in request.files:
             file = request.files['image_file']
             if file and allowed_file(file.filename):
@@ -64,6 +73,7 @@ def add_item():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 image_filename = filename
 
+        # create a new inventory item record
         new_item = InventoryItem(
             category=category,
             subcategory=subcategory,
@@ -77,32 +87,49 @@ def add_item():
         return redirect(url_for('home'))
     return render_template('add_item.html')
 
-# Route to edit an existing inventory item
+# edit inventory item page
 @app.route('/edit/<int:item_id>', methods=['GET', 'POST'])
 def edit_item(item_id):
+    # get the item or return a 404 if it doesn't exist
     item = InventoryItem.query.get_or_404(item_id)
     if request.method == 'POST':
-        item.category = request.form['category']
-        item.subcategory = request.form['subcategory']
-        item.item = request.form['item']
-        item.purchase_date = request.form['purchase_date']
-        value = request.form['value']
-        item.value = float(value) if value else 0.0
+        # if the delete button was pressed, delete the item
+        if 'delete' in request.form:
+            db.session.delete(item)
+            db.session.commit()
+            return redirect(url_for('home'))
+        # if the save button was pressed, update the item
+        elif 'save' in request.form:
+            item.category = request.form['category']
+            item.subcategory = request.form['subcategory']
+            item.item = request.form['item']
+            item.purchase_date = request.form['purchase_date']
+            value = request.form['value']
+            item.value = float(value) if value else 0.0
 
-        # If a new image file is uploaded, process it
-        if 'image_file' in request.files:
-            file = request.files['image_file']
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                item.image = filename
+            # check if a new image file was provided and process it
+            if 'image_file' in request.files:
+                file = request.files['image_file']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    item.image = filename
 
-        db.session.commit()
-        return redirect(url_for('home'))
+            db.session.commit()
+            return redirect(url_for('home'))
     return render_template('edit_item.html', item=item)
+# route to delete an inventory item
+@app.route('/delete/<int:item_id>', methods=['POST'])
+def delete_item(item_id):
+    # get the item or return a 404 if not found
+    item = InventoryItem.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    return redirect(url_for('home'))
 
+# run the app if this file is executed directly
 if __name__ == '__main__':
-    # Ensure tables are created before running the app
+    # make sure db tables are created before app stats
     with app.app_context():
         db.create_all()
     app.run(debug=True)

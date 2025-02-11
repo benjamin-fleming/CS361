@@ -1,34 +1,53 @@
+<!--
+# Benjamin Fleming
+# OSU - CS 361
+# 02/10/2025
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Add Item - Home Inventory</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>Add Item - Home Inventory</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Add New Inventory Item</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <label for="category">Category:</label><br>
-        <input type="text" name="category" required><br><br>
-        
-        <label for="subcategory">SubCategory:</label><br>
-        <input type="text" name="subcategory"><br><br>
-        
-        <label for="item">Item:</label><br>
-        <input type="text" name="item" required><br><br>
-        
-        <label for="purchase_date">Purchase Date:</label><br>
-        <input type="date" name="purchase_date"><br><br>
-        
-        <label for="value">Value:</label><br>
-        <input type="number" step="0.01" name="value"><br><br>
-        
-        <label for="image_file">Upload Image:</label><br>
-        <input type="file" name="image_file" accept="image/*"><br><br>
-        
-        <input type="submit" value="Add Item">
-    </form>
-    <br>
-    <a href="{{ url_for('home') }}">Back to Home Inventory</a>
+  <a href="/">
+    <img src="{{ url_for('static', filename='images/HomeLogo.png') }}" alt="home inventory" style="width: auto; height: auto;">
+  </a>
+  <form method="POST" enctype="multipart/form-data">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>SubCategory</th>
+            <th>Item</th>
+            <th>Purchase Date</th>
+            <th>Value</th>
+            <th>Image</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="text" name="category" required></td>
+            <td><input type="text" name="subcategory"></td>
+            <td><input type="text" name="item" required></td>
+            <td><input type="date" name="purchase_date"></td>
+            <td><input type="number" step="0.01" name="value" placeholder="100.00"></td>
+            <td><input type="file" name="image_file" accept="image/*"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div id="actionButtons">
+        <a href="{{ url_for('home') }}">
+          <img src="{{ url_for('static', filename='images/CancelItemLogo_Small.png') }}" alt="cancel">
+        </a>
+        <button type="submit" style="background: none; border: none; padding: 0;">
+          <img src="{{ url_for('static', filename='images/AddItemLogo_Small.png') }}" alt="add">
+        </button>
+      </div>
+    </div>
+  </form>
 </body>
 </html>
