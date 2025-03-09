@@ -10,11 +10,45 @@
   <meta charset="UTF-8">
   <title>Home Inventory</title>
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Simple modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <a href="/">
     <img src="{{ url_for('static', filename='images/HomeLogo.png') }}" alt="Home Inventory" style="width: auto; height: auto;">
   </a>
+  <div id="exportButtons">
+    <a href="{{ url_for('export_csv') }}">
+      <img src="{{ url_for('static', filename='images/ExportButton.png') }}" alt="Export CSV" style="width: auto; height: auto; display: block;">
+    </a>
+  </div>
+  <br>
   <div class="table-wrapper">
     <table>
       <thead>
@@ -25,7 +59,7 @@
           <th>Purchase Date</th>
           <th>Value</th>
           <th>Image</th>
-          <th></th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -44,9 +78,22 @@
             {% endif %}
           </td>
           <td style="text-align: center;">
+            <!-- Dedicated Edit Page -->
             <a href="{{ url_for('edit_item', item_id=item.id) }}">
               <img src="{{ url_for('static', filename='images/EditLogo.png') }}" alt="Edit" style="width: auto; height: auto; display: block; margin: auto;">
             </a>
+            <!-- Inline Edit Button -->
+            <button type="button" class="inline-edit-btn" 
+                    data-id="{{ item.id }}"
+                    data-category="{{ item.category }}"
+                    data-subcategory="{{ item.subcategory }}"
+                    data-item="{{ item.item }}"
+                    data-purchase_date="{{ item.purchase_date }}"
+                    data-value="{{ item.value }}"
+                    style="background: none; border: none; cursor: pointer; margin-top: 5px; color: white;">
+              <!-- <img src="{{ url_for('static', filename='images/InlineEditLogo.png') }}" alt="Inline Edit" style="width: auto; height: auto;">-->
+              Edit
+            </button>
           </td>
         </tr>
         {% endfor %}
@@ -54,9 +101,112 @@
     </table>
     <div id="actionButtons">
       <a href="{{ url_for('add_item') }}">
-        <img src="{{ url_for('static', filename='images/AddItemLogo.png') }}" alt="Add Item">
+        <img src="{{ url_for('static', filename='images/AddItemLogo.png') }}" alt="Add Item" style="width: auto; height: auto; display: block;">
       </a>
     </div>
   </div>
+
+  <!-- Inline Edit Modal -->
+  <div id="inlineEditModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Inline Edit Item</h2>
+      <form id="inlineEditForm" enctype="multipart/form-data">
+        <input type="hidden" name="item_id" id="inlineItemId">
+        <div>
+          <label>Category:</label>
+          <input type="text" name="category" id="inlineCategory" required>
+        </div>
+        <div>
+          <label>Subcategory:</label>
+          <input type="text" name="subcategory" id="inlineSubcategory">
+        </div>
+        <div>
+          <label>Item:</label>
+          <input type="text" name="item" id="inlineItem" required>
+        </div>
+        <div>
+          <label>Purchase Date:</label>
+          <input type="date" name="purchase_date" id="inlinePurchaseDate">
+        </div>
+        <div>
+          <label>Value:</label>
+          <input type="number" step="0.01" name="value" id="inlineValue" placeholder="100.00">
+        </div>
+        <div>
+          <label>Image:</label>
+          <input type="file" name="image_file" id="inlineImageFile" accept="image/*">
+        </div>
+        <div style="margin-top: 10px;">
+          <button type="submit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Get modal element
+    var modal = document.getElementById("inlineEditModal");
+    var spanClose = modal.querySelector(".close");
+    var form = document.getElementById("inlineEditForm");
+
+    // Close modal when clicking the close icon
+    spanClose.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // Close modal when clicking outside of the modal content
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // Attach click event to inline edit buttons
+    var inlineEditButtons = document.querySelectorAll(".inline-edit-btn");
+    inlineEditButtons.forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        // Populate modal fields with button data attributes
+        document.getElementById("inlineItemId").value = btn.getAttribute("data-id");
+        document.getElementById("inlineCategory").value = btn.getAttribute("data-category");
+        document.getElementById("inlineSubcategory").value = btn.getAttribute("data-subcategory");
+        document.getElementById("inlineItem").value = btn.getAttribute("data-item");
+        document.getElementById("inlinePurchaseDate").value = btn.getAttribute("data-purchase_date");
+        document.getElementById("inlineValue").value = btn.getAttribute("data-value");
+        // Clear any previous file input
+        document.getElementById("inlineImageFile").value = "";
+        // Show modal
+        modal.style.display = "block";
+      });
+    });
+
+    // Handle inline form submission via AJAX
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      var formData = new FormData(form);
+
+      fetch("{{ url_for('update_item') }}", {
+        method: "POST",
+        body: formData
+      })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        if (data.status === "success") {
+          // Reload page on successful update
+          location.reload();
+        } else {
+          alert("Error updating item");
+        }
+      })
+      .catch(function(error) {
+        console.error("Error:", error);
+        alert("Error updating item");
+      });
+    });
+  });
+  </script>
 </body>
 </html>

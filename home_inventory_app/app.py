@@ -1,12 +1,14 @@
 # Benjamin Fleming
 # OSU - CS 361
-# 02/10/2025
+# 03/09/2025
 
 
 # import libraries
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Response
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
+import requests
 import os
 
 # define image file types
@@ -118,6 +120,7 @@ def edit_item(item_id):
             db.session.commit()
             return redirect(url_for('home'))
     return render_template('edit_item.html', item=item)
+
 # route to delete an inventory item
 @app.route('/delete/<int:item_id>', methods=['POST'])
 def delete_item(item_id):
@@ -127,9 +130,70 @@ def delete_item(item_id):
     db.session.commit()
     return redirect(url_for('home'))
 
+# New route for inline editing via AJAX
+@app.route('/update_item', methods=['POST'])
+def update_item():
+    item_id = request.form.get('item_id')
+    if not item_id:
+        return jsonify({'status': 'error', 'message': 'Missing item id'}), 400
+    item = InventoryItem.query.get_or_404(item_id)
+
+    item.category = request.form.get('category')
+    item.subcategory = request.form.get('subcategory')
+    item.item = request.form.get('item')
+    item.purchase_date = request.form.get('purchase_date')
+    value = request.form.get('value')
+    item.value = float(value) if value else 0.0
+
+    if 'image_file' in request.files:
+        file = request.files['image_file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            item.image = filename
+
+    db.session.commit()
+    return jsonify({'status': 'success'})
+
+@app.route('/export_csv')
+def export_csv():
+    # Retrieve all inventory items
+    items = InventoryItem.query.all()
+
+    # Convert the SQLAlchemy objects to a list of dictionaries
+    json_data = []
+    for item in items:
+        json_data.append({
+            "category": item.category,
+            "subcategory": item.subcategory,
+            "item": item.item,
+            "purchase_date": item.purchase_date,
+            "value": item.value,
+            "image": item.image,
+        })
+
+    try:
+        # POST JSON data to the Node.js microservice
+        node_url = "http://localhost:3000/convert_json_to_csv"
+        response = requests.post(node_url, json=json_data)
+
+        if response.status_code == 200:
+            csv_data = response.content
+            # Return the CSV file as an attachment
+            return Response(
+                csv_data,
+                mimetype="text/csv",
+                headers={"Content-Disposition": "attachment;filename=inventory.csv"}
+            )
+        else:
+            return "Error exporting CSV", 500
+    except Exception as e:
+        print("Error:", e)
+        return "Error exporting CSV", 500
+
 # run the app if this file is executed directly
 if __name__ == '__main__':
-    # make sure db tables are created before app stats
+    # make sure db tables are created before app starts
     with app.app_context():
         db.create_all()
     app.run(debug=True)
