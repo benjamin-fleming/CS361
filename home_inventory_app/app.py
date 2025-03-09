@@ -199,6 +199,40 @@ def export_csv():
         print("Error:", e)
         return "Error exporting CSV", 500
 
+@app.route('/export_pdf')
+def export_pdf():
+    # Retrieve all inventory items
+    items = InventoryItem.query.all()
+
+    # Convert the SQLAlchemy objects to a list of dictionaries
+    json_data = []
+    for item in items:
+        json_data.append({
+            "category": item.category,
+            "subcategory": item.subcategory,
+            "item": item.item,
+            "purchase_date": item.purchase_date,
+            "value": item.value,
+            "image": item.image,
+        })
+
+    try:
+        import zmq
+        context = zmq.Context()
+        # Create a REQ socket to send the JSON data to the PDF microservice
+        socket = context.socket(zmq.REQ)
+        socket.connect("tcp://localhost:5556")
+        # Send the JSON data
+        socket.send_json(json_data)
+        # Wait for the PDF binary data
+        pdf_data = socket.recv()
+        return Response(pdf_data,
+                        mimetype="application/pdf",
+                        headers={"Content-Disposition": "attachment;filename=inventory.pdf"})
+    except Exception as e:
+        print("Error exporting PDF:", e)
+        return "Error exporting PDF", 500
+
 # run the app if this file is executed directly
 if __name__ == '__main__':
     # make sure db tables are created before app starts
