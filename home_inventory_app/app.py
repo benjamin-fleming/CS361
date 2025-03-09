@@ -55,6 +55,14 @@ def home():
     items = InventoryItem.query.all()
     return render_template('home.html', items=items)
 
+@app.route('/export')
+def export():
+    return render_template('export.html')
+
+@app.route('/analytics')
+def analytics():
+    return render_template('analytics.html')
+
 #  new inventory item page
 @app.route('/add', methods=['GET', 'POST'])
 def add_item():

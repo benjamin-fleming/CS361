@@ -1,9 +1,3 @@
-<!--
-# Benjamin Fleming
-# OSU - CS 361
-# 02/10/2025
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,15 +31,26 @@
       font-weight: bold;
       cursor: pointer;
     }
+    #headerButtons {
+      display: flex;
+      justify-content: flex-start !important;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <a href="/">
     <img src="{{ url_for('static', filename='images/HomeLogo.png') }}" alt="Home Inventory" style="width: auto; height: auto;">
   </a>
-  <div id="exportButtons">
-    <a href="{{ url_for('export_csv') }}">
-      <img src="{{ url_for('static', filename='images/ExportButton.png') }}" alt="Export CSV" style="width: auto; height: auto; display: block;">
+  <div id="headerButtons" style="display: flex; justify-content: flex-start !important; margin-top: 10px;">
+    <a href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='images/HomeButton.png') }}" alt="Home" style="width: auto; height: auto; margin-right: 5px;">
+    </a>
+    <a href="{{ url_for('export') }}">
+      <img src="{{ url_for('static', filename='images/ExportButton.png') }}" alt="Export" style="width: auto; height: auto; margin-right: 5px;">
+    </a>
+    <a href="{{ url_for('analytics') }}">
+      <img src="{{ url_for('static', filename='images/AnalyticsButton.png') }}" alt="Analytics" style="width: auto; height: auto; margin-right: 5px;">
     </a>
   </div>
   <br>
@@ -91,7 +96,6 @@
                     data-purchase_date="{{ item.purchase_date }}"
                     data-value="{{ item.value }}"
                     style="background: none; border: none; cursor: pointer; margin-top: 5px; color: white;">
-              <!-- <img src="{{ url_for('static', filename='images/InlineEditLogo.png') }}" alt="Inline Edit" style="width: auto; height: auto;">-->
               Edit
             </button>
           </td>
