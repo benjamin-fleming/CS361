@@ -6,6 +6,12 @@ import smtplib
 from email.message import EmailMessage
 
 def send_inventory_email(inventory, recipient_email):
+    # Configure your SMTP server settings (example uses Gmail)
+    smtp_server = 'smtp.gmail.com'
+    smtp_port = 587
+    sender_email = 'benjamin.e.fleming@gmail.com'
+    sender_password = 'gzon lrej zckm wmsy'
+
     # Build the email body from the inventory data
     body = "Your Home Inventory:\n\n"
     for item in inventory:
@@ -20,14 +26,10 @@ def send_inventory_email(inventory, recipient_email):
     msg = EmailMessage()
     msg.set_content(body)
     msg['Subject'] = 'Your Home Inventory'
-    msg['From'] = 'your-email@example.com'       # Replace with your sender email
+    msg['From'] = 'your-email@example.com'
     msg['To'] = recipient_email
 
-    # Configure your SMTP server settings (example uses Gmail)
-    smtp_server = 'smtp.gmail.com'
-    smtp_port = 587
-    sender_email = 'your-email@example.com'       # Replace with your sender email
-    sender_password = 'your-email-password'       # Replace with your email password or use an app password
+
 
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
@@ -38,7 +40,7 @@ def send_inventory_email(inventory, recipient_email):
     except Exception as e:
         return f"Failed to send email: {e}"
 
-print("Email Inventory Microservice running...")
+print("Email Inventory Microservice running on port 5557...")
 
 # Setup ZeroMQ REP socket on a new port (5557)
 context = zmq.Context()

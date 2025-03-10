@@ -175,7 +175,7 @@ def export_csv():
             "value": item.value,
             "image": item.image,
         })
-    
+
     print("Export CSV JSON data:", json_data)
 
     try:
@@ -254,7 +254,7 @@ def email_inventory():
             "email": email,
             "inventory": json_data
         }
-        
+
         print("Email Inventory JSON payload:", payload)
 
         try:
@@ -287,7 +287,7 @@ def analytics():
             "value": item.value,
             "image": item.image,
         })
-    
+
     print("Analytics JSON data:", json_data)
 
     try:

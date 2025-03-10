@@ -54,7 +54,7 @@ def json_to_pdf(json_data):
     buffer.close()
     return pdf_data
 
-print("PDF Export Microservice running...")
+print("PDF Export Microservice running on port 5556......")
 
 # setup ZeroMQ context and socket for communication
 context = zmq.Context()
