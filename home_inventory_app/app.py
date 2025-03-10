@@ -233,6 +233,43 @@ def export_pdf():
         print("Error exporting PDF:", e)
         return "Error exporting PDF", 500
 
+@app.route('/email_inventory', methods=['GET', 'POST'])
+def email_inventory():
+    if request.method == 'POST':
+        # Get the email address from the form submission
+        email = request.form.get('email')
+        # Retrieve all inventory items
+        items = InventoryItem.query.all()
+        json_data = []
+        for item in items:
+            json_data.append({
+                "category": item.category,
+                "subcategory": item.subcategory,
+                "item": item.item,
+                "purchase_date": item.purchase_date,
+                "value": item.value,
+                "image": item.image,
+            })
+        payload = {
+            "email": email,
+            "inventory": json_data
+        }
+        try:
+            import zmq
+            context = zmq.Context()
+            socket = context.socket(zmq.REQ)
+            socket.connect("tcp://localhost:5557")
+            socket.send_json(payload)
+            # Wait for response but ignore it
+            socket.recv_string()
+            return redirect(url_for('home'))
+        except Exception as e:
+            print("Error sending email:", e)
+            return redirect(url_for('home'))
+    else:
+        # Render the email form
+        return render_template('email_inventory.html')
+
 # run the app if this file is executed directly
 if __name__ == '__main__':
     # make sure db tables are created before app starts
