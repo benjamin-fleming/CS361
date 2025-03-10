@@ -59,10 +59,6 @@ def home():
 def export():
     return render_template('export.html')
 
-@app.route('/analytics')
-def analytics():
-    return render_template('analytics.html')
-
 #  new inventory item page
 @app.route('/add', methods=['GET', 'POST'])
 def add_item():
@@ -179,6 +175,8 @@ def export_csv():
             "value": item.value,
             "image": item.image,
         })
+    
+    print("Export CSV JSON data:", json_data)
 
     try:
         # POST JSON data to the Node.js microservice
@@ -215,6 +213,8 @@ def export_pdf():
             "value": item.value,
             "image": item.image,
         })
+
+    print("Export PDF JSON data:", json_data)
 
     try:
         import zmq
@@ -254,6 +254,9 @@ def email_inventory():
             "email": email,
             "inventory": json_data
         }
+        
+        print("Email Inventory JSON payload:", payload)
+
         try:
             import zmq
             context = zmq.Context()
@@ -269,6 +272,38 @@ def email_inventory():
     else:
         # Render the email form
         return render_template('email_inventory.html')
+
+@app.route('/analytics')
+def analytics():
+    # Retrieve all inventory items from the database
+    items = InventoryItem.query.all()
+    json_data = []
+    for item in items:
+        json_data.append({
+            "category": item.category,
+            "subcategory": item.subcategory,
+            "item": item.item,
+            "purchase_date": item.purchase_date,
+            "value": item.value,
+            "image": item.image,
+        })
+    
+    print("Analytics JSON data:", json_data)
+
+    try:
+        import zmq
+        context = zmq.Context()
+        socket = context.socket(zmq.REQ)
+        socket.connect("tcp://localhost:5558")
+        socket.send_json(json_data)
+        # Wait for analytics data from microservice D
+        response_data = socket.recv_json()
+        analytics_info = response_data["analytics"]
+        pie_chart_base64 = response_data["pie_chart"]
+        return render_template('analytics.html', analytics=analytics_info, pie_chart=pie_chart_base64)
+    except Exception as e:
+        print("Error retrieving analytics:", e)
+        return "Error retrieving analytics", 500
 
 # run the app if this file is executed directly
 if __name__ == '__main__':
